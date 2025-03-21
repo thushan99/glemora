@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import Navigation from "../components/navigation/Navigation";
-import Footer from "../components/navigation/Footer";
 
 const VirtualTryOn = () => {
     const [userImage, setUserImage] = useState(null);
@@ -35,7 +33,7 @@ const VirtualTryOn = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Navigation/>
+           
         <div className="min-h-screen bg-gray-50">
             <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
                 <div className="bg-white rounded-lg shadow-sm p-8">
@@ -161,7 +159,7 @@ const VirtualTryOn = () => {
                 </div>
             </main>
         </div>
-            <Footer/>
+        
         </div>
     );
 };

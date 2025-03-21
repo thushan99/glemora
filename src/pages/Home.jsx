@@ -5,7 +5,6 @@ import Footer from "../components/navigation/Footer";
 const Home = () => {
     return (
             <div className="flex flex-col min-h-screen">
-            <Navigation/>
             {/* Hero Banner */}
             <section className="bg-cover bg-center h-96 flex items-center px-12" style={{ backgroundImage: "url('../assets/img/hero-banner.jpg')" }}>
                 <div className="text-white max-w-md">
@@ -131,7 +130,6 @@ const Home = () => {
                     </div>
                 </div>
             </section>
-            <Footer/>
         </div>
     );
 };
