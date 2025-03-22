@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ProductManagement = () => {
@@ -17,6 +17,8 @@ const ProductManagement = () => {
     featured: false
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
   
   // Dummy data for demonstration - replace with your API calls
   useEffect(() => {
@@ -45,6 +47,33 @@ const ProductManagement = () => {
     });
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // In a real application, you would upload this to your server/cloud storage
+    // For demo purposes, we'll create a local URL
+    const imageUrl = URL.createObjectURL(file);
+    setImagePreview(imageUrl);
+    
+    // In a real application, after upload you would get back a URL to store
+    setFormData({
+      ...formData,
+      image: imageUrl // In production, this would be the URL returned from your upload API
+    });
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setFormData({
+      ...formData,
+      image: ''
+    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       id: '',
@@ -56,11 +85,16 @@ const ProductManagement = () => {
       sale: false,
       featured: false
     });
+    setImagePreview(null);
     setIsEditing(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleEdit = (item) => {
     setFormData(item);
+    setImagePreview(item.image);
     setIsEditing(true);
   };
 
@@ -173,15 +207,36 @@ const ProductManagement = () => {
                 </div>
                 
                 <div>
-                  <label className="block mb-1">Image URL</label>
-                  <input 
-                    type="text" 
-                    name="image" 
-                    value={formData.image} 
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded"
-                    required
-                  />
+                  <label className="block mb-1">Product Image</label>
+                  <div className="flex flex-col">
+                    <div className="flex items-center">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="w-full"
+                      />
+                      {imagePreview && (
+                        <button 
+                          type="button" 
+                          onClick={handleRemoveImage}
+                          className="ml-2 bg-red-500 text-white px-2 py-1 rounded text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-32 h-32 object-cover border rounded"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -323,15 +378,36 @@ const ProductManagement = () => {
                 </div>
                 
                 <div>
-                  <label className="block mb-1">Image URL</label>
-                  <input 
-                    type="text" 
-                    name="image" 
-                    value={formData.image} 
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded"
-                    required
-                  />
+                  <label className="block mb-1">Category Image</label>
+                  <div className="flex flex-col">
+                    <div className="flex items-center">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="w-full"
+                      />
+                      {imagePreview && (
+                        <button 
+                          type="button" 
+                          onClick={handleRemoveImage}
+                          className="ml-2 bg-red-500 text-white px-2 py-1 rounded text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-32 h-32 object-cover border rounded"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
