@@ -5,12 +5,12 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-app-name.firebaseapp.com",
-  projectId: "your-app-name",
-  storageBucket: "your-app-name.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBV6LNocaaXlPxVlaM8Jz3IbxXnG2uh-Vs",
+  authDomain: "glemora.firebaseapp.com",
+  projectId: "glemora",
+  storageBucket: "glemora.firebasestorage.app",
+  messagingSenderId: "273221037182",
+  appId: "1:273221037182:web:eb945d566daf2007803c2f"
 };
 
 // Initialize Firebase

@@ -35,34 +35,37 @@ function App() {
                         <Route path="/cart" element={<Cart />} />
                         <Route path="/checkout" element={<Checkout />} />
                         <Route path="/order-success" element={<OrderSuccess />} />
-                        
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/admin/orders" element={<OrderManagement />} />
+                        <Route path="/admin/users" element={<UserManagement />} />
+                       
                         {/* Protected routes for logged-in users */}
-                        <Route 
+                        {/* <Route 
                             path="/dashboard" 
                             element={
                                 <ProtectedRoute>
                                     <Dashboard />
                                 </ProtectedRoute>
-                            } 
-                        />
+                            }   
+                        /> */}
                         
                         {/* Admin-only routes */}
-                        <Route 
+                        {/* <Route 
                             path="/admin/users" 
                             element={
                                 <AdminRoute>
                                     <UserManagement />
                                 </AdminRoute>
                             } 
-                        />
-                        <Route 
+                        /> */}
+                        {/* <Route 
                             path="/admin/orders" 
                             element={
                                 <AdminRoute>
                                     <OrderManagement />
                                 </AdminRoute>
                             } 
-                        />
+                        /> */}
                         
                         <Route path="*" element={<NotFound />} />
                     </Routes>

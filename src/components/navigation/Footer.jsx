@@ -1,3 +1,7 @@
+import Glemora from '../../assets/img/logo-white.png';
+import Payment from '../../assets/img/payment-method.png';
+
+
 import React from "react";
 
 const Footer = () => {
@@ -8,9 +12,9 @@ const Footer = () => {
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-4 gap-8 mb-8">
                         <div>
-                            <img src="/images/molly-logo-white.png" alt="Molly" className="h-12 mb-4"/>
-                            <p className="text-sm text-gray-400 leading-relaxed">Negombo (Head Office)<br/>40/A, Main
-                                Street, Negombo<br/><br/>Tel: (+94) 38 222 4459<br/>Tel: (+94) 077 389 8955</p>
+                            <img src={Glemora} alt="Molly" className="h-20 mb-4"/>
+                            <p className="text-sm text-gray-400 leading-relaxed">Colombo (Head Office)<br/>40/A, Main
+                                Street, Colombo<br/><br/>Tel: (+94) xx xxx xxxx<br/>Tel: (+94) xxx xxx xxxx</p>
                         </div>
                         <div>
                             <h3 className="text-lg mb-4 relative">SHOP</h3>
@@ -51,11 +55,11 @@ const Footer = () => {
                         </div>
                     </div>
                     <div className="flex justify-between items-center pt-8 border-t border-gray-800">
-                        <div className="text-sm text-gray-500">Copyright © 2025 Molly Boulevard - Negombo, Sri Lanka.
+                        <div className="text-sm text-gray-500">Copyright © 2025 Glemora Boulevard - Colombo, Sri Lanka.
                             All rights reserved.
                         </div>
                         <div>
-                            <img src="/images/payment-methods.png" alt="Payment Methods" className="h-8"/>
+                            <img src={Payment} alt="Payment Methods" className="h-20"/>
                         </div>
                     </div>
                 </div>

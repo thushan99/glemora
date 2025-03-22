@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navigation from '../components/navigation/Navigation';
-import Footer from '../components/navigation/Footer';
+import V from '../assets/img/v.jpg';
+
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -22,7 +22,7 @@ const ProductDetail = () => {
         description: 'Beautiful V neck dress perfect for summer days. Made with high quality fabric that ensures comfort and style. Available in multiple sizes and colors.',
         price: 3590,
         category: 'dresses',
-        image: '/images/product-1.jpg',
+        image: V,
         sale: true,
         originalPrice: 4290,
         sizes: ['XS', 'S', 'M', 'L', 'XL'],

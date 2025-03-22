@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
       // Simulate API call
       setTimeout(() => {
         // Mock user data - in a real app, this would come from your backend
-        if (email === "admin@example.com" && password === "password") {
+        if (email === "admin@example.com" && password === "123") {
           const user = { 
             id: "1", 
             email, 

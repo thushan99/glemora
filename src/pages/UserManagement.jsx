@@ -1,7 +1,4 @@
-// src/pages/UserManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, query, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -9,16 +6,35 @@ const UserManagement = () => {
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
 
+  // Simulate fetching users with dummy data
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsers = () => {
       try {
-        const userRef = collection(db, 'users');
-        const userSnapshot = await getDocs(userRef);
-        const userList = userSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setUsers(userList);
+        const dummyUsers = [
+          {
+            id: '1',
+            displayName: 'John Doe',
+            email: 'john.doe@example.com',
+            role: 'customer',
+            createdAt: new Date('2022-01-01')
+          },
+          {
+            id: '2',
+            displayName: 'Jane Smith',
+            email: 'jane.smith@example.com',
+            role: 'admin',
+            createdAt: new Date('2021-06-15')
+          },
+          {
+            id: '3',
+            displayName: 'Sam Johnson',
+            email: 'sam.johnson@example.com',
+            role: 'staff',
+            createdAt: new Date('2023-02-10')
+          }
+        ];
+
+        setUsers(dummyUsers);
       } catch (err) {
         setError('Failed to fetch users');
         console.error(err);
@@ -30,16 +46,11 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  const handleRoleChange = async (userId, newRole) => {
+  const handleRoleChange = (userId, newRole) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        role: newRole
-      });
-      
       setUsers(users.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
       ));
-      
     } catch (err) {
       setError('Failed to update user role');
       console.error(err);
@@ -104,7 +115,7 @@ const UserManagement = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500">
-                    {user.createdAt?.toDate().toLocaleDateString() || 'N/A'}
+                    {user.createdAt.toLocaleDateString() || 'N/A'}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -156,7 +167,7 @@ const UserManagement = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700">Created At</label>
                 <div className="mt-1 text-sm text-gray-900">
-                  {selectedUser.createdAt?.toDate().toLocaleDateString() || 'N/A'}
+                  {selectedUser.createdAt.toLocaleDateString() || 'N/A'}
                 </div>
               </div>
             </div>

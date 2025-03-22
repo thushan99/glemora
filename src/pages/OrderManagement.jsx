@@ -1,7 +1,4 @@
-// src/pages/OrderManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -16,142 +13,107 @@ const OrderManagement = () => {
     notes: ''
   });
 
+  // Dummy Data
+  const dummyOrders = [
+    {
+      id: '123456',
+      customer: { name: 'John Doe', email: 'john@example.com', phone: '1234567890' },
+      shippingAddress: {
+        line1: '123 Main St',
+        line2: 'Apt 4B',
+        city: 'Colombo',
+        state: 'Western',
+        postalCode: '12345',
+        country: 'Sri Lanka'
+      },
+      items: [
+        { name: 'Product 1', quantity: 1, price: 100 },
+        { name: 'Product 2', quantity: 2, price: 200 },
+      ],
+      subtotal: 500,
+      shippingCost: 50,
+      total: 550,
+      createdAt: { toDate: () => new Date('2025-03-20') },
+      updatedAt: { toDate: () => new Date('2025-03-21') },
+      status: 'pending',
+      deliveryInfo: null
+    },
+    {
+      id: '789012',
+      customer: { name: 'Jane Smith', email: 'jane@example.com', phone: '9876543210' },
+      shippingAddress: {
+        line1: '456 Elm St',
+        line2: '',
+        city: 'Kandy',
+        state: 'Central',
+        postalCode: '67890',
+        country: 'Sri Lanka'
+      },
+      items: [
+        { name: 'Product 3', quantity: 1, price: 300 },
+        { name: 'Product 4', quantity: 1, price: 400 },
+      ],
+      subtotal: 700,
+      shippingCost: 70,
+      total: 770,
+      createdAt: { toDate: () => new Date('2025-03-19') },
+      updatedAt: { toDate: () => new Date('2025-03-20') },
+      status: 'processing',
+      deliveryInfo: null
+    }
+  ];
+
+  const dummyProviders = [
+    { id: '1', name: 'DHL' },
+    { id: '2', name: 'FedEx' },
+    { id: '3', name: 'Sri Lanka Post' }
+  ];
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const orderRef = collection(db, 'orders');
-        const orderSnapshot = await getDocs(orderRef);
-        const orderList = orderSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setOrders(orderList);
-        
-        // Fetch delivery providers
-        const providersRef = collection(db, 'deliveryProviders');
-        const providersSnapshot = await getDocs(providersRef);
-        const providersList = providersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setDeliveryProviders(providersList);
-        
-      } catch (err) {
-        setError('Failed to fetch orders');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    const fetchOrders = () => {
+      setOrders(dummyOrders);
+      setDeliveryProviders(dummyProviders);
+      setLoading(false);
     };
 
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (orderId, newStatus) => {
-    try {
-      await updateDoc(doc(db, 'orders', orderId), {
-        status: newStatus,
-        updatedAt: new Date()
-      });
-      
-      setOrders(orders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus, updatedAt: new Date() } : order
-      ));
-      
-    } catch (err) {
-      setError('Failed to update order status');
-      console.error(err);
-    }
+  const handleStatusChange = (orderId, newStatus) => {
+    setOrders(orders.map(order => 
+      order.id === orderId ? { ...order, status: newStatus, updatedAt: new Date() } : order
+    ));
   };
 
-  const openOrderDetails = async (orderId) => {
-    try {
-      const orderDoc = await getDoc(doc(db, 'orders', orderId));
-      if (orderDoc.exists()) {
-        setSelectedOrder({
-          id: orderDoc.id,
-          ...orderDoc.data()
-        });
-      }
-    } catch (err) {
-      setError('Failed to fetch order details');
-      console.error(err);
-    }
+  const openOrderDetails = (orderId) => {
+    const order = orders.find(order => order.id === orderId);
+    setSelectedOrder(order);
   };
 
   const closeOrderDetails = () => {
     setSelectedOrder(null);
     setSelectedProvider('');
-    setDeliveryInfo({
-      trackingNumber: '',
-      estimatedDelivery: '',
-      notes: ''
-    });
+    setDeliveryInfo({ trackingNumber: '', estimatedDelivery: '', notes: '' });
   };
 
-  const handleDeliverySubmit = async () => {
+  const handleDeliverySubmit = () => {
     if (!selectedOrder || !selectedProvider) return;
-    
-    try {
-      // Update order with delivery information
-      await updateDoc(doc(db, 'orders', selectedOrder.id), {
-        status: 'shipped',
-        deliveryInfo: {
-          provider: selectedProvider,
-          ...deliveryInfo,
-          assignedAt: new Date()
-        },
-        updatedAt: new Date()
-      });
-      
-      // Also create a delivery entry in a separate collection
-      // for the third-party integration (would normally integrate with an API)
-      await fetch('https://api.delivery-provider.example/shipments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderId: selectedOrder.id,
-          provider: selectedProvider,
-          trackingNumber: deliveryInfo.trackingNumber,
-          customerInfo: selectedOrder.customer,
-          shippingAddress: selectedOrder.shippingAddress,
-          items: selectedOrder.items
-        }),
-      });
-      
-      // Update the orders list
-      setOrders(orders.map(order => 
-        order.id === selectedOrder.id 
-          ? { 
-              ...order, 
-              status: 'shipped', 
-              deliveryInfo: {
-                provider: selectedProvider,
-                ...deliveryInfo,
-                assignedAt: new Date()
-              },
-              updatedAt: new Date()
-            } 
-          : order
-      ));
-      
-      closeOrderDetails();
-      
-    } catch (err) {
-      setError('Failed to update delivery information');
-      console.error(err);
-    }
+
+    // Update the order's delivery info and status
+    setOrders(orders.map(order =>
+      order.id === selectedOrder.id
+        ? { ...order, status: 'shipped', deliveryInfo: { provider: selectedProvider, ...deliveryInfo }, updatedAt: new Date() }
+        : order
+    ));
+
+    closeOrderDetails();
   };
 
   const generateDeliveryReport = () => {
-    // Filter orders that have delivery info
     const shippedOrders = orders.filter(order => order.status === 'shipped' && order.deliveryInfo);
-    
-    // Create CSV content
+
     let csvContent = "Order ID,Customer,Delivery Provider,Tracking Number,Shipped Date,Estimated Delivery\n";
-    
+
     shippedOrders.forEach(order => {
       const row = [
         order.id,
@@ -163,8 +125,7 @@ const OrderManagement = () => {
       ];
       csvContent += row.join(',') + "\n";
     });
-    
-    // Create blob and download
+
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -190,29 +151,17 @@ const OrderManagement = () => {
           Generate Delivery Report
         </button>
       </div>
-      
+
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Order ID
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Customer
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -270,7 +219,7 @@ const OrderManagement = () => {
                 <i className="fas fa-times"></i>
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <h3 className="text-lg font-medium mb-2">Customer Information</h3>
@@ -280,150 +229,88 @@ const OrderManagement = () => {
                   <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.customer?.phone || 'N/A'}</p>
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-medium mb-2">Shipping Address</h3>
                 <div className="bg-gray-50 p-4 rounded">
-                  <p className="text-sm">{selectedOrder.shippingAddress?.line1 || 'N/A'}</p>
-                  {selectedOrder.shippingAddress?.line2 && <p className="text-sm">{selectedOrder.shippingAddress.line2}</p>}
-                  <p className="text-sm">
-                    {selectedOrder.shippingAddress?.city || 'N/A'}, 
-                    {selectedOrder.shippingAddress?.state ? selectedOrder.shippingAddress.state + ', ' : ''} 
-                    {selectedOrder.shippingAddress?.postalCode || 'N/A'}
-                  </p>
-                  <p className="text-sm">{selectedOrder.shippingAddress?.country || 'N/A'}</p>
+                  <p className="text-sm"><span className="font-medium">Address:</span> {selectedOrder.shippingAddress?.line1}, {selectedOrder.shippingAddress?.line2}</p>
+                  <p className="text-sm"><span className="font-medium">City:</span> {selectedOrder.shippingAddress?.city}</p>
+                  <p className="text-sm"><span className="font-medium">State:</span> {selectedOrder.shippingAddress?.state}</p>
+                  <p className="text-sm"><span className="font-medium">Postal Code:</span> {selectedOrder.shippingAddress?.postalCode}</p>
+                  <p className="text-sm"><span className="font-medium">Country:</span> {selectedOrder.shippingAddress?.country}</p>
                 </div>
               </div>
             </div>
-            
-            <h3 className="text-lg font-medium mb-2">Order Items</h3>
-            <div className="bg-gray-50 p-4 rounded mb-6">
-              <table className="min-w-full divide-y divide-gray-200">
+
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-2">Items</h3>
+              <table className="min-w-full">
                 <thead>
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Product</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Quantity</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Price</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody>
                   {selectedOrder.items?.map((item, index) => (
                     <tr key={index}>
                       <td className="px-4 py-2 text-sm">{item.name}</td>
                       <td className="px-4 py-2 text-sm">{item.quantity}</td>
-                      <td className="px-4 py-2 text-sm text-right">LKR {item.price?.toFixed(2) || '0.00'}</td>
-                      <td className="px-4 py-2 text-sm text-right">LKR {(item.price * item.quantity).toFixed(2) || '0.00'}</td>
+                      <td className="px-4 py-2 text-sm">LKR {item.price.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-sm">LKR {(item.quantity * item.price).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan="3" className="px-4 py-2 text-sm font-medium text-right">Subtotal:</td>
-                    <td className="px-4 py-2 text-sm text-right">LKR {selectedOrder.subtotal?.toFixed(2) || '0.00'}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan="3" className="px-4 py-2 text-sm font-medium text-right">Shipping:</td>
-                    <td className="px-4 py-2 text-sm text-right">LKR {selectedOrder.shippingCost?.toFixed(2) || '0.00'}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan="3" className="px-4 py-2 text-sm font-medium text-right">Total:</td>
-                    <td className="px-4 py-2 text-sm font-bold text-right">LKR {selectedOrder.total?.toFixed(2) || '0.00'}</td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
-            
+
+            {/* Delivery Info */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-2">Order Status</h3>
+              <h3 className="text-lg font-medium mb-2">Delivery Information</h3>
               <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm"><span className="font-medium">Current Status:</span> <span className="capitalize">{selectedOrder.status}</span></p>
-                <p className="text-sm"><span className="font-medium">Order Date:</span> {selectedOrder.createdAt?.toDate().toLocaleDateString() || 'N/A'}</p>
-                <p className="text-sm"><span className="font-medium">Last Updated:</span> {selectedOrder.updatedAt?.toDate().toLocaleDateString() || 'N/A'}</p>
-                
-                {selectedOrder.deliveryInfo && (
-                  <div className="mt-2 border-t border-gray-200 pt-2">
-                    <p className="text-sm font-medium">Delivery Information:</p>
-                    <p className="text-sm"><span className="font-medium">Provider:</span> {selectedOrder.deliveryInfo.provider}</p>
-                    <p className="text-sm"><span className="font-medium">Tracking Number:</span> {selectedOrder.deliveryInfo.trackingNumber}</p>
-                    <p className="text-sm"><span className="font-medium">Estimated Delivery:</span> {selectedOrder.deliveryInfo.estimatedDelivery}</p>
-                    {selectedOrder.deliveryInfo.notes && <p className="text-sm"><span className="font-medium">Notes:</span> {selectedOrder.deliveryInfo.notes}</p>}
-                  </div>
-                )}
+                <select
+                  value={selectedProvider}
+                  onChange={(e) => setSelectedProvider(e.target.value)}
+                  className="text-sm text-gray-900 border border-gray-300 rounded-md py-1 px-2 mb-4 w-full"
+                >
+                  <option value="">Select Delivery Provider</option>
+                  {deliveryProviders.map(provider => (
+                    <option key={provider.id} value={provider.name}>{provider.name}</option>
+                  ))}
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Tracking Number"
+                  value={deliveryInfo.trackingNumber}
+                  onChange={(e) => setDeliveryInfo({ ...deliveryInfo, trackingNumber: e.target.value })}
+                  className="w-full mb-4 p-2 border border-gray-300 rounded"
+                />
+
+                <input
+                  type="date"
+                  value={deliveryInfo.estimatedDelivery}
+                  onChange={(e) => setDeliveryInfo({ ...deliveryInfo, estimatedDelivery: e.target.value })}
+                  className="w-full mb-4 p-2 border border-gray-300 rounded"
+                />
+
+                <textarea
+                  placeholder="Notes"
+                  value={deliveryInfo.notes}
+                  onChange={(e) => setDeliveryInfo({ ...deliveryInfo, notes: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
               </div>
             </div>
-            
-            {selectedOrder.status === 'processing' && (
-              <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2">Send to Delivery Provider</h3>
-                <div className="bg-gray-50 p-4 rounded">
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Delivery Provider</label>
-                    <select
-                      value={selectedProvider}
-                      onChange={(e) => setSelectedProvider(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brown-500 focus:border-brown-500"
-                    >
-                      <option value="">-- Select Provider --</option>
-                      {deliveryProviders.map(provider => (
-                        <option key={provider.id} value={provider.name}>{provider.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
-                    <input
-                      type="text"
-                      value={deliveryInfo.trackingNumber}
-                      onChange={(e) => setDeliveryInfo({...deliveryInfo, trackingNumber: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brown-500 focus:border-brown-500"
-                      placeholder="Enter tracking number"
-                    />
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Delivery Date</label>
-                    <input
-                      type="date"
-                      value={deliveryInfo.estimatedDelivery}
-                      onChange={(e) => setDeliveryInfo({...deliveryInfo, estimatedDelivery: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brown-500 focus:border-brown-500"
-                    />
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea
-                      value={deliveryInfo.notes}
-                      onChange={(e) => setDeliveryInfo({...deliveryInfo, notes: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brown-500 focus:border-brown-500"
-                      rows="2"
-                      placeholder="Any special delivery instructions"
-                    ></textarea>
-                  </div>
-                  
-                  <button
-                    onClick={handleDeliverySubmit}
-                    disabled={!selectedProvider || !deliveryInfo.trackingNumber}
-                    className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-                      (!selectedProvider || !deliveryInfo.trackingNumber) 
-                        ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-brown-800 hover:bg-brown-700'
-                    }`}
-                  >
-                    Send to Delivery Provider
-                  </button>
-                </div>
-              </div>
-            )}
-            
+
             <div className="flex justify-end">
               <button 
-                onClick={closeOrderDetails}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"
+                onClick={handleDeliverySubmit}
+                className="bg-brown-800 text-white px-4 py-2 rounded hover:bg-brown-700"
               >
-                Close
+                Submit Delivery Info
               </button>
             </div>
           </div>
@@ -434,3 +321,4 @@ const OrderManagement = () => {
 };
 
 export default OrderManagement;
+  

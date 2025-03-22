@@ -1,4 +1,4 @@
-import Glemora from '../../assets/img/glemora-logo.png';
+import Glemora from '../../assets/img/logo.png';
 
 
 const Navigation = () => {
@@ -29,7 +29,6 @@ const Navigation = () => {
                             <img src={Glemora} alt="Molly" className="h-16"/>
                         </a>
                     </div>
-
                     <div className="flex items-center">
                         <div className="flex mr-4">
                             <input type="text" placeholder="Search..."
@@ -53,18 +52,19 @@ const Navigation = () => {
             <nav className="bg-brown-800 py-2">
                 <div className="container mx-auto px-4">
                     <ul className="flex justify-around items-center">
-                        <li><a href="/dresses" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-female mr-1"></i> Dresses</a></li>
-                        <li><a href="/tops" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-tshirt mr-1"></i> Tops</a></li>
-                        <li><a href="/pants" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-socks mr-1"></i> Pants</a></li>
-                        <li><a href="/skirts" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-female mr-1"></i> Skirts</a></li>
-                        <li><a href="/jumpsuits" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-female mr-1"></i> Jumpsuits</a></li>
+                        <li><a href="/" className="text-white text-sm flex items-center hover:opacity-80"><i
+                            className="fas fa-female mr-1"></i> 
+                            Home</a></li>
+                        <li><a href="/new-arrivals" className="text-white text-sm flex items-center hover:opacity-80"><i
+                            className="fas fa-tshirt mr-1"></i> New Arrivals</a></li>
+                        <li><a href="/women" className="text-white text-sm flex items-center hover:opacity-80"><i
+                            className="fas fa-socks mr-1"></i> Women</a></li>
+                        <li><a href="/men" className="text-white text-sm flex items-center hover:opacity-80"><i
+                            className="fas fa-female mr-1"></i> Men</a></li>
+                        {/* <li><a href="/jumpsuits" className="text-white text-sm flex items-center hover:opacity-80"><i
+                            className="fas fa-female mr-1"></i> Teen</a></li>
                         <li><a href="/loungewear" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-home mr-1"></i> Lounge-Suits</a></li>
+                            className="fas fa-home mr-1"></i> Lounge-Suits</a></li> */}
                         <li><a href="/virtual-try-on" className="text-white text-sm flex items-center hover:opacity-80"><i
                             className="fas fa-gem mr-1"></i> Virtual Try-On</a></li>
                     </ul>

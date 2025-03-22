@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navigation from '../components/navigation/Navigation';
-import Footer from '../components/navigation/Footer';
 
 const ProductManagement = () => {
   const navigate = useNavigate();
