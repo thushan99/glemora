@@ -1,54 +1,112 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import {Navigate} from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import axios from 'axios';
+
+// Create an axios instance with interceptors
+const api = axios.create({
+  baseURL: 'http://localhost:8080/api',
+  headers: {
+    'X-Api-Version': 'v1'
+  }
+});
 
 // AuthContext to manage authentication state
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Simulated login function (replace with your actual authentication logic)
-  const login = (email, password) => {
-    // Simulated user roles
-    const users = {
-      'user@example.com': {
-        role: 'user',
-        name: 'John Doe',
-        email: 'user@example.com'
-      },
-      'admin@example.com': {
-        role: 'admin',
-        name: 'Admin User',
-        email: 'admin@example.com'
-      }
-    };
+  // Login function using backend authentication
+  const login = async (username, password) => {
+    try {
+      const response = await api.post('/auth/sign-in', { username, password });
 
-    const foundUser = users[email];
-    if (foundUser) {
-      // In a real app, you'd verify the password here
-      setUser(foundUser);
-      localStorage.setItem('user', JSON.stringify(foundUser));
+      // Store authentication details
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('username', username);
+
+      // Extract user role
+      const userRole = response.data.userType[0].name.toLowerCase();
+      localStorage.setItem('userRole', userRole);
+
+      // Set user state
+      setUser({
+        username: username,
+        role: userRole,
+        token: response.data.token
+      });
+      setIsAuthenticated(true);
+
       return true;
+    } catch (error) {
+      console.error('Login failed:', error.response ? error.response.data : error);
+      return false;
     }
-    return false;
   };
 
   // Logout function
   const logout = () => {
+    // Clear local storage
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('userRole');
+
+    // Reset user state
     setUser(null);
-    localStorage.removeItem('user');
+    setIsAuthenticated(false);
   };
 
   // Check for existing authentication on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const token = localStorage.getItem('token');
+    const username = localStorage.getItem('username');
+    const userRole = localStorage.getItem('userRole');
+
+    // Add request interceptor to include token in headers
+    const interceptor = api.interceptors.request.use(
+        (config) => {
+          if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+          }
+          return config;
+        },
+        (error) => {
+          return Promise.reject(error);
+        }
+    );
+
+    if (token && username && userRole) {
+      setUser({
+        username,
+        role: userRole,
+        token
+      });
+      setIsAuthenticated(true);
     }
+
+    setLoading(false);
+
+    // Cleanup interceptor
+    return () => {
+      api.interceptors.request.eject(interceptor);
+    };
   }, []);
 
+  // If still loading, you might want to show a loading state
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-      <AuthContext.Provider value={{ user, login, logout }}>
+      <AuthContext.Provider value={{
+        user,
+        login,
+        logout,
+        isAuthenticated,
+        api  // Expose the configured axios instance
+      }}>
         {children}
       </AuthContext.Provider>
   );
@@ -61,18 +119,20 @@ export const useAuth = () => {
 
 // Protected Route Component
 export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
-  if (!user) {
-    // Redirect to login if no user
+  if (!isAuthenticated) {
+    // Redirect to login if not authenticated
     return <Navigate to="/login" replace />;
   }
 
   // If specific roles are required and user doesn't match
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    // Redirect to unauthorized page or dashboard
+    // Redirect to unauthorized page
     return <Navigate to="/unauthorized" replace />;
   }
 
   return children;
 };
+
+export default api;  // Export the axios instance for use in other components
