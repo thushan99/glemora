@@ -20,7 +20,7 @@ const Home = () => {
                     <h3 className="text-2xl font-light mb-2">we are expanding</h3>
                     <h2 className="text-4xl mb-2">Visit our Premium outlet</h2>
                     <h1 className="text-5xl font-bold mb-4">in Liberty Plaza</h1>
-                    <a href="/shop" className="bg-brown-800 text-white px-6 py-2 rounded font-bold hover:bg-brown-700">SHOP NOW</a>
+                    <a href="/products" className="bg-brown-800 text-white px-6 py-2 rounded font-bold hover:bg-brown-700">SHOP NOW</a>
                 </div>
             </section>
 
@@ -141,7 +141,7 @@ const Home = () => {
                         <h3 className="text-2xl mb-2">Stay Home and Start</h3>
                         <h2 className="text-5xl font-bold mb-4">Shopping Online!</h2>
                         <p className="text-lg mb-4">Glemora Now Ships Worldwide</p>
-                        <a href="/shop" className="bg-brown-800 text-white px-6 py-2 rounded font-bold hover:bg-brown-700">SHOP NOW</a>
+                        <a href="/products" className="bg-brown-800 text-white px-6 py-2 rounded font-bold hover:bg-brown-700">SHOP NOW</a>
                     </div>
                     <div className="max-w-sm">
                     </div>

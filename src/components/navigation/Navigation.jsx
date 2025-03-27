@@ -19,7 +19,7 @@ const Navigation = () => {
                     <div className="flex items-center">
                         <a href="/" className="text-gray-700 hover:text-gray-900"><i className="far fa-heart"></i></a>
                         <span className="text-gray-300 mx-2">•</span>
-                        <a href="/account" className="text-gray-700 hover:text-gray-900">MY ACCOUNT</a>
+                        <a href="/dashboard" className="text-gray-700 hover:text-gray-900">MY ACCOUNT</a>
                         <span className="text-gray-300 mx-2">•</span>
                         <a href="/sale" className="text-red-600 font-bold hover:text-red-700">SALE</a>
                     </div>
@@ -61,10 +61,6 @@ const Navigation = () => {
                             className="fas fa-socks mr-1"></i> Women</a></li>
                         <li><a href="/men" className="text-white text-sm flex items-center hover:opacity-80"><i
                             className="fas fa-female mr-1"></i> Men</a></li>
-                        {/* <li><a href="/jumpsuits" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-female mr-1"></i> Teen</a></li>
-                        <li><a href="/loungewear" className="text-white text-sm flex items-center hover:opacity-80"><i
-                            className="fas fa-home mr-1"></i> Lounge-Suits</a></li> */}
                         <li><a href="/virtual-try-on" className="text-white text-sm flex items-center hover:opacity-80"><i
                             className="fas fa-gem mr-1"></i> Virtual Try-On</a></li>
                     </ul>
