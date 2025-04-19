@@ -1,8 +1,5 @@
 import React from "react";
-import {  BrowserRouter as Router,
-    Routes,
-    Route,
-    Navigate  } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navigation from "./components/navigation/Navigation";
 import Footer from "./components/navigation/Footer";
 import Home from "./pages/Home";
@@ -21,6 +18,8 @@ import ProductPage from "./pages/ProductsPage";
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import UserProfile from './pages/UserProfile';
+import UserSettings from './pages/UserSettings';
 import { AuthProvider, ProtectedRoute } from './contexts/AuthContext';
 
 function App() {
@@ -39,13 +38,25 @@ function App() {
                         <Route path="/cart" element={<Cart/>} />
                         <Route path="/checkout" element={<Checkout/>} />
                         <Route path="/order-success" element={<OrderSuccess/>} />
-                        <Route path="/admin/orders" element={<OrderManagement/>} />
-                        <Route path="/admin/users" element={<UserManagement/>} />
-                        <Route path="/admin/products" element={<ProductManagement/>} />
-
-                        {/*<Route path="*" element={<NotFound />} />*/}
                         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
+                        {/* Protected routes */}
+                        <Route
+                            path="/profile"
+                            element={
+                                <ProtectedRoute>
+                                    <UserProfile />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/settings"
+                            element={
+                                <ProtectedRoute>
+                                    <UserSettings />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route
                             path="/admin/dashboard"
                             element={
@@ -54,7 +65,30 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
-
+                        <Route
+                            path="/admin/orders"
+                            element={
+                                <ProtectedRoute allowedRoles={['admin']}>
+                                    <OrderManagement />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/users"
+                            element={
+                                <ProtectedRoute allowedRoles={['admin']}>
+                                    <UserManagement />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/products"
+                            element={
+                                <ProtectedRoute allowedRoles={['admin']}>
+                                    <ProductManagement />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route
                             path="/user/dashboard"
                             element={
@@ -64,17 +98,11 @@ function App() {
                             }
                         />
 
-                        {/* Redirect root to login or appropriate dashboard */}
-                        <Route
-                            path="/"
-                            element={<Navigate to="/login" replace />}
-                        />
+                        {/* Redirect root to home page */}
+                        <Route path="/" element={<Navigate to="/home" replace />}/>
 
                         {/* Catch-all route */}
-                        <Route
-                            path="*"
-                            element={<Navigate to="/login" replace />}
-                        />
+                        <Route path="*" element={<NotFound />}/>
                     </Routes>
                 </main>
                 <Footer />

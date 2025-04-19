@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, ShoppingCart, Heart, EyeIcon, ChevronDown } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext'; // Import the auth context
 
 // Cart Utility Function
 const CartUtils = {
@@ -28,48 +29,47 @@ const CartUtils = {
     }
 };
 
-// Sample Product Data (replace with your actual data)
-const initialProducts = [
-    {
-        id: 1,
-        name: 'V Neck Dress',
-        category: 'Dresses',
-        price: 3590,
-        salePrice: 2990,
-        sale: true,
-        image: '/path/to/v.jpg',
-        description: 'Elegant V-neck dress perfect for any occasion.',
-        colors: ['Black', 'White', 'Red'],
-        sizes: ['XS', 'S', 'M', 'L']
-    },
-    {
-        id: 2,
-        name: 'Classic Shirt',
-        category: 'Shirts',
-        price: 2590,
-        salePrice: 1990,
-        sale: false,
-        image: '/path/to/shirt.jpg',
-        description: 'Comfortable classic shirt for everyday wear.',
-        colors: ['White', 'Blue'],
-        sizes: ['S', 'M', 'L', 'XL']
-    },
-    // More products can be added here
-];
-
 const ProductsPage = () => {
+    const { api, isAuthenticated } = useAuth(); // Use the auth context
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 10000]);
     const [sortBy, setSortBy] = useState('default');
+    const [categories, setCategories] = useState([]);
 
-    // Categories and filter logic
-    const categories = [...new Set(initialProducts.map(p => p.category))];
+    // Fetch products and categories from API
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                // Fetch products
+                const productsResponse = await api.get('/products');
+                setProducts(productsResponse.data);
 
+                // Fetch categories
+                const categoriesResponse = await api.get('/categories');
+                setCategories(categoriesResponse.data);
+
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setError('Failed to load products. Please try again later.');
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [api]);
+
+    // Filter and sort products
     const filteredProducts = useMemo(() => {
-        return initialProducts.filter(product => {
+        return products.filter(product => {
             const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
+            const matchesCategory = selectedCategories.length === 0 ||
+                (product.category && selectedCategories.includes(product.category.id));
             const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
 
             return matchesSearch && matchesCategory && matchesPrice;
@@ -82,24 +82,32 @@ const ProductsPage = () => {
                 default: return 0;
             }
         });
-    }, [searchTerm, selectedCategories, priceRange, sortBy]);
+    }, [products, searchTerm, selectedCategories, priceRange, sortBy]);
 
     // Toggle category selection
-    const toggleCategory = (category) => {
+    const toggleCategory = (categoryId) => {
         setSelectedCategories(prev =>
-            prev.includes(category)
-                ? prev.filter(c => c !== category)
-                : [...prev, category]
+            prev.includes(categoryId)
+                ? prev.filter(c => c !== categoryId)
+                : [...prev, categoryId]
         );
     };
 
     // Add to cart handler for product cards
     const handleQuickAddToCart = (product) => {
         // Assuming default size and quantity for quick add
-        const defaultSize = product.sizes[0];
+        const defaultSize = 'M'; // Default size
         CartUtils.addToCart(product, defaultSize, 1);
         alert('Product added to cart!');
     };
+
+    if (loading) {
+        return <div className="flex justify-center items-center h-screen">Loading products...</div>;
+    }
+
+    if (error) {
+        return <div className="text-red-500 text-center p-4">{error}</div>;
+    }
 
     return (
         <div className="bg-gray-50 min-h-screen">
@@ -142,16 +150,16 @@ const ProductsPage = () => {
                         <div className="mb-6">
                             <h4 className="font-semibold mb-3">Categories</h4>
                             {categories.map(category => (
-                                <div key={category} className="flex items-center mb-2">
+                                <div key={category.id} className="flex items-center mb-2">
                                     <input
                                         type="checkbox"
-                                        id={category}
-                                        checked={selectedCategories.includes(category)}
-                                        onChange={() => toggleCategory(category)}
+                                        id={`category-${category.id}`}
+                                        checked={selectedCategories.includes(category.id)}
+                                        onChange={() => toggleCategory(category.id)}
                                         className="mr-2 text-brown-800 focus:ring-brown-500"
                                     />
-                                    <label htmlFor={category} className="text-gray-700">
-                                        {category}
+                                    <label htmlFor={`category-${category.id}`} className="text-gray-700">
+                                        {category.name}
                                     </label>
                                 </div>
                             ))}
@@ -182,7 +190,7 @@ const ProductsPage = () => {
 
                     {/* Products Grid */}
                     <div className="flex-grow">
-                        <div className="grid grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredProducts.map(product => (
                                 <div
                                     key={product.id}
@@ -194,6 +202,9 @@ const ProductsPage = () => {
                                             src={product.image}
                                             alt={product.name}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                                            onError={(e) => {
+                                                e.target.src = '/placeholder-image.jpg'; // Fallback image
+                                            }}
                                         />
 
                                         {product.sale && (
@@ -228,8 +239,10 @@ const ProductsPage = () => {
                                         <div className="text-brown-800 font-bold">
                                             {product.sale ? (
                                                 <>
-                                                    <span className="mr-2 text-brown-800">LKR {product.salePrice}</span>
-                                                    <span className="line-through text-gray-500 text-sm">LKR {product.price}</span>
+                                                    <span className="mr-2 text-brown-800">LKR {product.price}</span>
+                                                    <span className="line-through text-gray-500 text-sm">
+                                                        LKR {(product.price * 1.2).toFixed(2)}
+                                                    </span>
                                                 </>
                                             ) : (
                                                 `LKR ${product.price}`
@@ -239,6 +252,12 @@ const ProductsPage = () => {
                                 </div>
                             ))}
                         </div>
+
+                        {filteredProducts.length === 0 && (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500">No products found matching your criteria.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
