@@ -17,7 +17,7 @@ const UserDashboard = () => {
             icon: User,
             title: 'Profile',
             description: 'Manage your personal information',
-            link: '/user/profile'
+            link: '/profile'
         },
         {
             icon: ShoppingBag,

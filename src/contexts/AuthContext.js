@@ -18,6 +18,31 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Sync cart with backend after login
+  const syncCartWithBackend = async () => {
+    try {
+      const localCart = JSON.parse(localStorage.getItem('cart')) || [];
+
+      if (localCart.length === 0) return;
+
+      // For each item in local cart, add to backend cart
+      for (const item of localCart) {
+        await api.post('/cart', null, {
+          params: {
+            productId: item.productId,
+            quantity: item.quantity,
+            size: item.size
+          }
+        });
+      }
+
+      // Clear localStorage cart after successful sync
+      localStorage.removeItem('cart');
+    } catch (err) {
+      console.error('Error syncing cart with backend:', err);
+    }
+  };
+
   // Login function using backend authentication
   const login = async (username, password) => {
     try {
@@ -38,6 +63,9 @@ export const AuthProvider = ({ children }) => {
         token: response.data.token
       });
       setIsAuthenticated(true);
+
+      // Sync localStorage cart with backend after login
+      await syncCartWithBackend();
 
       return true;
     } catch (error) {

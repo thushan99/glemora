@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext'; // Import the auth context
+import { useAuth } from '../contexts/AuthContext';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { api } = useAuth(); // Use the auth context
+  const { api, isAuthenticated } = useAuth(); // Make sure to get isAuthenticated
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('M');
@@ -59,35 +59,51 @@ const ProductDetail = () => {
     setQuantity(parseInt(e.target.value));
   };
 
-  const handleAddToCart = () => {
-    // Get existing cart from localStorage or initialize empty array
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const handleAddToCart = async () => {
+    try {
+      if (product.stockQuantity < quantity) {
+        alert(`Sorry, only ${product.stockQuantity} items available in stock.`);
+        return;
+      }
 
-    // Check if product already exists in cart
-    const existingItemIndex = cart.findIndex(item =>
-        item.productId === product.id && item.size === selectedSize
-    );
+      if (isAuthenticated) {
+        // For authenticated users, use the API
+        await api.post('/cart', null, {
+          params: {
+            productId: product.id,
+            quantity: quantity,
+            size: selectedSize
+          }
+        });
+        alert('Product added to cart!');
+      } else {
+        // For non-authenticated users, use localStorage
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-    if (existingItemIndex !== -1) {
-      // Update quantity if product already in cart
-      cart[existingItemIndex].quantity += quantity;
-    } else {
-      // Add new item to cart
-      cart.push({
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        size: selectedSize,
-        quantity: quantity
-      });
+        const existingItemIndex = cart.findIndex(item =>
+            item.productId === product.id && item.size === selectedSize
+        );
+
+        if (existingItemIndex !== -1) {
+          cart[existingItemIndex].quantity += quantity;
+        } else {
+          cart.push({
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            size: selectedSize,
+            quantity: quantity
+          });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        alert('Product added to cart!');
+      }
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      alert('Failed to add product to cart. Please try again.');
     }
-
-    // Save updated cart to localStorage
-    localStorage.setItem('cart', JSON.stringify(cart));
-
-    // Show success message
-    alert('Product added to cart!');
   };
 
   if (isLoading) {
@@ -272,7 +288,7 @@ const ProductDetail = () => {
                     <div key={relatedProduct.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                       <Link to={`/product/${relatedProduct.id}`} className="block relative h-64 overflow-hidden">
                         <img
-                            src={`http://localhost:8080/api/images/${relatedProduct.image}`}
+                            src={relatedProduct.image}
                             alt={relatedProduct.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {

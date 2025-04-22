@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-
 const OrderSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
