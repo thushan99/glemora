@@ -14,12 +14,15 @@ const ProductManagement = () => {
     category: '',
     stockQuantity: 0,
     image: null,
+    pngTryOnImage: null,
     sale: false,
     featured: false
   });
   const [isEditing, setIsEditing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [tryOnImagePreview, setTryOnImagePreview] = useState(null);
   const fileInputRef = useRef(null);
+  const tryOnFileInputRef = useRef(null);
 
   // Create API wrappers that use the authenticated api instance
   const productApiWithAuth = {
@@ -50,6 +53,9 @@ const ProductManagement = () => {
       if (productData.image) {
         formData.append('image', productData.image);
       }
+      if (productData.pngTryOnImage) {
+        formData.append('pngTryOnImage', productData.pngTryOnImage);
+      }
 
       return api.post('/products', formData, {
         headers: {
@@ -78,6 +84,9 @@ const ProductManagement = () => {
       }
       if (productData.image) {
         formData.append('image', productData.image);
+      }
+      if (productData.pngTryOnImage) {
+        formData.append('pngTryOnImage', productData.pngTryOnImage);
       }
 
       return api.put(`/products/${id}`, formData, {
@@ -176,6 +185,26 @@ const ProductManagement = () => {
     });
   };
 
+  const handleTryOnImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate that it's a PNG file
+    if (file.type !== 'image/png') {
+      alert('Please upload a PNG image for try-on');
+      e.target.value = '';
+      return;
+    }
+
+    const imageUrl = URL.createObjectURL(file);
+    setTryOnImagePreview(imageUrl);
+
+    setFormData({
+      ...formData,
+      pngTryOnImage: file
+    });
+  };
+
   const handleRemoveImage = () => {
     setImagePreview(null);
     setFormData({
@@ -184,6 +213,17 @@ const ProductManagement = () => {
     });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveTryOnImage = () => {
+    setTryOnImagePreview(null);
+    setFormData({
+      ...formData,
+      pngTryOnImage: null
+    });
+    if (tryOnFileInputRef.current) {
+      tryOnFileInputRef.current.value = '';
     }
   };
 
@@ -196,13 +236,18 @@ const ProductManagement = () => {
       category: '',
       stockQuantity: 0,
       image: null,
+      pngTryOnImage: null,
       sale: false,
       featured: false
     });
     setImagePreview(null);
+    setTryOnImagePreview(null);
     setIsEditing(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (tryOnFileInputRef.current) {
+      tryOnFileInputRef.current.value = '';
     }
   };
 
@@ -216,9 +261,11 @@ const ProductManagement = () => {
       ...item,
       category: categoryId,
       stockQuantity: item.stockQuantity || 0,
-      image: null // Reset image to avoid sending base64 to server
+      image: null, // Reset image to avoid sending base64 to server
+      pngTryOnImage: null
     });
     setImagePreview(item.image);
+    setTryOnImagePreview(item.pngTryOnImage);
     setIsEditing(true);
   };
 
@@ -394,6 +441,39 @@ const ProductManagement = () => {
                         )}
                       </div>
                     </div>
+
+                    <div>
+                      <label className="block mb-1">Try-On PNG Image</label>
+                      <div className="flex flex-col">
+                        <div className="flex items-center">
+                          <input
+                              type="file"
+                              ref={tryOnFileInputRef}
+                              accept="image/png"
+                              onChange={handleTryOnImageUpload}
+                              className="w-full"
+                          />
+                          {tryOnImagePreview && (
+                              <button
+                                  type="button"
+                                  onClick={handleRemoveTryOnImage}
+                                  className="ml-2 bg-red-500 text-white px-2 py-1 rounded text-sm"
+                              >
+                                Remove
+                              </button>
+                          )}
+                        </div>
+                        {tryOnImagePreview && (
+                            <div className="mt-2">
+                              <img
+                                  src={tryOnImagePreview}
+                                  alt="Try-On Preview"
+                                  className="w-32 h-32 object-cover border rounded"
+                              />
+                            </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="mb-4">
@@ -462,6 +542,7 @@ const ProductManagement = () => {
                       <thead>
                       <tr className="bg-gray-100">
                         <th className="p-2 text-left">Image</th>
+                        <th className="p-2 text-left">Try-On Image</th>
                         <th className="p-2 text-left">Name</th>
                         <th className="p-2 text-left">Category</th>
                         <th className="p-2 text-left">Price</th>
@@ -475,6 +556,13 @@ const ProductManagement = () => {
                           <tr key={product.id} className="border-b">
                             <td className="p-2">
                               <img src={product.image} alt={product.name} className="w-16 h-16 object-cover" />
+                            </td>
+                            <td className="p-2">
+                              {product.pngTryOnImage ? (
+                                  <img src={product.pngTryOnImage} alt={`${product.name} Try-On`} className="w-16 h-16 object-cover" />
+                              ) : (
+                                  <span className="text-gray-400">No try-on image</span>
+                              )}
                             </td>
                             <td className="p-2">{product.name}</td>
                             <td className="p-2 capitalize">

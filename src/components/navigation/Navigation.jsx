@@ -79,8 +79,8 @@ const Navigation = () => {
                     <a href="/cart" className="bg-brown-800 text-white px-3 py-1 rounded flex items-center">
                         <i className="fas fa-shopping-cart"></i>
                         <span className="mx-2">MY CART</span>
-                        <span
-                            className="bg-white text-brown-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">0</span>
+                        {/*<span*/}
+                        {/*    className="bg-white text-brown-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">0</span>*/}
                     </a>
                 </div>
             </div>
